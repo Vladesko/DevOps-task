@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-web-app
+spec:
+  replicas: 3  
+  selector:
+    matchLabels:
+      app: my-web-app
+  template:
+    metadata:
+      labels:
+        app: my-web-app
+    spec:
+      containers:
+      - name: my-web-app-container
+        image: my-web-app-image:latest  
+        resources:
+          requests:
+            memory: "128Mi" 
+            cpu: "100m"  
+          limits:
+            memory: "128Mi" 
+            cpu: "200m"  
+        readinessProbe:
+          httpGet:
+            path: /healthz  
+            port: 80
+          initialDelaySeconds: 10  
+          periodSeconds: 5  
+        livenessProbe:
+          httpGet:
+            path: /healthz  
+            port: 80
+          initialDelaySeconds: 15  
+          periodSeconds: 20  
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - my-web-app
+            topologyKey: "kubernetes.io/hostname"  
